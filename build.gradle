@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+group 'tech.maslick.s3test'
+version '1.0'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform('software.amazon.awssdk:bom:2.15.0')
+    implementation 'software.amazon.awssdk:aws-core'
+    implementation 'software.amazon.awssdk:s3'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'tech.maslick.s3test.Test'
+    }
+    from {
+        configurations.runtimeClasspath.filter{ it.exists() }.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    archiveFileName = "s3test-${project.version}.jar"
+}
