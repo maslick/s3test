@@ -12,7 +12,7 @@ public class CredsProviders {
                 .build();
     }
 
-    public static AwsCredentialsProvider staticCredsProvider() {
+    public static AwsCredentialsProvider hardcodedCredsProvider() {
         return StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 "*****",
                 "*****"
