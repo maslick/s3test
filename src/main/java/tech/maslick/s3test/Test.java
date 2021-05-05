@@ -1,14 +1,17 @@
 package tech.maslick.s3test;
 
-import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
-import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.io.IOException;
-import java.time.Instant;
+import java.time.Duration;
 
 
 public class Test {
@@ -17,6 +20,8 @@ public class Test {
             .region(Region.EU_WEST_1)
             .credentialsProvider(CredsProviders.envVarsCredsProvider())
             .build();
+
+    static S3Presigner presigner = S3Presigner.builder().region(Region.EU_WEST_1).build();
 
     // Signed URL will expire in 5 min
     static long EXPIRES_IN_MIN = 5;
@@ -40,41 +45,26 @@ public class Test {
     }
 
     public static String createSignedUrl2Get(String bucket, String key) {
-        Aws4PresignerParams params = Aws4PresignerParams.builder()
-                .signingName("s3")
-                .signingRegion(Region.EU_WEST_1)
-                .awsCredentials(CredsProviders.envVarsCredsProvider().resolveCredentials())
-                .expirationTime(Instant.ofEpochMilli(System.currentTimeMillis() + 1000 * 60 * EXPIRES_IN_MIN))
+        GetObjectRequest req = GetObjectRequest.builder().bucket(bucket).key(key).build();
+
+        GetObjectPresignRequest presignReq = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(EXPIRES_IN_MIN))
+                .getObjectRequest(req)
                 .build();
 
-        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
-                .host(bucket + ".s3.amazonaws.com")
-                .encodedPath(key)
-                .method(SdkHttpMethod.GET)
-                .protocol("https")
-                .build();
-
-        SdkHttpFullRequest result = AwsS3V4Signer.create().presign(request, params);
-        return result.getUri().toString();
+        PresignedGetObjectRequest presignedReq = presigner.presignGetObject(presignReq);
+        return presignedReq.url().toString();
     }
 
     public static String createSignedUrl2Put(String bucket, String key) {
-        Aws4PresignerParams params = Aws4PresignerParams.builder()
-                .signingName("s3")
-                .signingRegion(Region.EU_WEST_1)
-                .awsCredentials(CredsProviders.envVarsCredsProvider().resolveCredentials())
-                .expirationTime(Instant.ofEpochMilli(System.currentTimeMillis() + 1000 * 60 * EXPIRES_IN_MIN))
+        PutObjectRequest req = PutObjectRequest.builder().bucket(bucket).key(key).build();
+
+        PutObjectPresignRequest presignReq = PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(EXPIRES_IN_MIN))
+                .putObjectRequest(req)
                 .build();
 
-        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
-                .host(bucket + ".s3.amazonaws.com")
-                .encodedPath(key)
-                .method(SdkHttpMethod.PUT)
-                .protocol("https")
-                .build();
-
-        SdkHttpFullRequest result = AwsS3V4Signer.create().presign(request, params);
-        return result.getUri().toString();
+        PresignedPutObjectRequest presignedReq = presigner.presignPutObject(presignReq);
+        return presignedReq.url().toString();
     }
 }
-
