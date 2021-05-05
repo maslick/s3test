@@ -18,27 +18,33 @@ public class Test {
             .credentialsProvider(CredsProviders.envVarsCredsProvider())
             .build();
 
+    // Signed URL will expire in 5 min
+    static long EXPIRES_IN_MIN = 5;
+
     public static void main(String[] args) throws IOException {
+        String bucket = "my-lovely-bucket";
+        String key = "helloworld.txt";
+
         System.out.println("########################################");
         System.out.println("# This program tests integration with S3");
         System.out.println("########################################");
         System.out.println("# signed URL for GET");
-        String url = createSignedUrl2Fetch("my-lovely-bucket", "helloworld.txt");
+        String url = createSignedUrl2Get(bucket, key);
         System.out.println(url);
 
         System.out.println("########################################");
         System.out.println("# signed URL for PUT");
-        url = createSignedUrl2Put("my-lovely-bucket", "helloworld.txt");
+        url = createSignedUrl2Put(bucket, key);
         System.out.println(url);
         System.out.println("########################################");
     }
 
-    public static String createSignedUrl2Fetch(String bucket, String key) {
+    public static String createSignedUrl2Get(String bucket, String key) {
         Aws4PresignerParams params = Aws4PresignerParams.builder()
                 .signingName("s3")
                 .signingRegion(Region.EU_WEST_1)
                 .awsCredentials(CredsProviders.envVarsCredsProvider().resolveCredentials())
-                .expirationTime(Instant.ofEpochMilli(System.currentTimeMillis() + 60*1000*5))
+                .expirationTime(Instant.ofEpochMilli(System.currentTimeMillis() + 1000 * 60 * EXPIRES_IN_MIN))
                 .build();
 
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
@@ -57,7 +63,7 @@ public class Test {
                 .signingName("s3")
                 .signingRegion(Region.EU_WEST_1)
                 .awsCredentials(CredsProviders.envVarsCredsProvider().resolveCredentials())
-                .expirationTime(Instant.ofEpochMilli(System.currentTimeMillis() + 60*1000*5))
+                .expirationTime(Instant.ofEpochMilli(System.currentTimeMillis() + 1000 * 60 * EXPIRES_IN_MIN))
                 .build();
 
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
