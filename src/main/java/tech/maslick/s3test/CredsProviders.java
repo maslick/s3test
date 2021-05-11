@@ -20,8 +20,8 @@ public class CredsProviders {
     }
 
     public static AwsCredentialsProvider envVarsCredsProvider() {
-        String aws_access_key_id = System.getenv("AWS_ACCESS_KEY_ID");
-        String aws_secret_access_key = System.getenv("AWS_SECRET_ACCESS_KEY");
+        String aws_access_key_id = System.getenv().getOrDefault("AWS_ACCESS_KEY_ID", "");
+        String aws_secret_access_key = System.getenv().getOrDefault("AWS_SECRET_ACCESS_KEY", "");
 
         return StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 aws_access_key_id,

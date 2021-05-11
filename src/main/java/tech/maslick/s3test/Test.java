@@ -23,8 +23,8 @@ public class Test {
     static long EXPIRES_IN_MIN = 5;
 
     public static void main(String[] args) {
-        String bucket = "my-lovely-bucket";
-        String key = "helloworld.txt";
+        String bucket = System.getenv().getOrDefault("BUCKET", "my-lovely-bucket");
+        String key = System.getenv().getOrDefault("KEY", "helloword.txt");
 
         System.out.println("########################################");
         System.out.println("# This program tests integration with S3");
